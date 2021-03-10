@@ -67,7 +67,7 @@ We also provide support for running VOQC as a pass in Qiskit's PassManager. You 
 ## Directory Contents
 
 * `lib` contains code for building a VOQC C libary.
-* `lib/ml` contains (1)  OCaml code extracted from our verified Coq definitions and (2) hand-written OCaml harness code. This code is all from the [SQIR]((https://github.com/inQWIRE/SQIR) repository and SHOULD NOT be edited from the pyvoqc directory. We will periodically update code in the `lib/ml` directory to be consistent with the current Coq development.
+* `lib/ml` contains (1)  OCaml code extracted from our verified Coq definitions and (2) hand-written OCaml harness code. This code is all from the [SQIR](https://github.com/inQWIRE/SQIR) repository and SHOULD NOT be edited from the pyvoqc directory. We will periodically update code in the `lib/ml` directory to be consistent with the current Coq development.
 * `wrapper/` contains the Python wrapper code.
 * `tutorial_files/` contains files for the pyvoqc tutorial.
 

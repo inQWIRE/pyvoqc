@@ -62,7 +62,7 @@ c.optimize()
 c.write("out.qasm")
 ```
 
-We also provide support for running VOQC as a pass in Qiskit's PassManager. You can find the details in our [tutorial](tutorial.ipynb). To run the tutorial locally, run `jupyter notebook` on the command line from the pyvoqc directory and open http://localhost:8888/notebooks/tutorial.ipynb.
+We also provide support for running VOQC as a pass in Qiskit's PassManager. You can find the details in our [tutorial](tutorial.ipynb). You *should* be able to view our tutorial on GitHub, but if this fails then go to https://nbviewer.jupyter.org/ and copy the link https://github.com/inQWIRE/pyvoqc/blob/main/tutorial.ipynb when prompted. To run the tutorial locally, run `jupyter notebook` on the command line from the pyvoqc directory and open http://localhost:8888/notebooks/tutorial.ipynb.
 
 ## Directory Contents
 

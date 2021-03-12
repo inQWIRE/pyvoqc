@@ -1,0 +1,3 @@
+[submodule "benchmarks/VOQC-benchmarks"]
+	path = benchmarks/VOQC-benchmarks
+	url = https://github.com/inQWIRE/VOQC-benchmarks

@@ -31,9 +31,9 @@ pm.append(QisVOQC(["cancel_two_qubit_gates"]))
 new_circ = pm.run(circ)
 ```
 
-## Using VOQC optimization pass in Cirq
+## Using VOQC Optimization Pass in Cirq
 
-Passing a Cirq circuit object to the VOQC compiler pass is similar to built-in optimizations. Just like the built-in Cirq optimizations, VOQC implements the `optimize_circuit(input_circ)` argument. To call this non-static method, create an instance of `CqVOQC` with an optional argument `list of optimizations` and call the `optimize_circuit(input_cirq)` function with `input_cirq` being the circuit to be optimized. The `list of optimizations` argument is identical to that of Qiskit as it is a list that allows customized optimizations to be executed. Again, the client file must be run from the `pyvoqc directory`. 
+Passing a Cirq circuit object to the VOQC compiler pass is similar to the built-in optimizations. Just like the built-in Cirq optimizations, VOQC implements the `optimize_circuit(input_circ)` function. To call this non-static method, create an instance of `CqVOQC` with an optional argument `list of optimizations` and call the `optimize_circuit(input_cirq)` function with `input_cirq` being the circuit to be optimized. The `list of optimizations` argument is identical to that of Qiskit as it is a list that allows the execution of customized optimizations. Again, the client file must be run from the pyvoqc directory. 
 
 *Example*: The following is a compiler pass to VOQC using a circuit built in Cirq. 
 ```

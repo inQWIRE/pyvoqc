@@ -7,8 +7,8 @@ from qiskit.transpiler.passes import Unroller, Optimize1qGates, CommutationAnaly
 import sys
 import re
 import time
-from interop.qiskit.voqc_optimization import VOQC
-from interop.formatting.format_from_qasm import format_from_qasm
+from wrapper.qiskit.voqc_optimization import VOQC
+from wrapper.formatting.format_from_qasm import format_from_qasm
 import csv
 from qiskit.circuit.gate import Gate
 from qiskit.circuit.quantumregister import QuantumRegister

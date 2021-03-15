@@ -7,7 +7,7 @@ from qiskit.transpiler.passes import Unroller, Optimize1qGates, CommutationAnaly
 import sys
 import re
 import time
-from pyvoqc.qiskit.voqc_optimization import VOQC
+from pyvoqc.qiskit.voqc_optimization import QisVOQC
 from pyvoqc.formatting.format_from_qasm import format_from_qasm
 import csv
 from qiskit.circuit.gate import Gate

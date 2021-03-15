@@ -11,7 +11,7 @@ from cirq.optimizers import MergeInteractions,MergeSingleQubitGates, EjectPhased
 from cirq.contrib.qasm_import import circuit_from_qasm, qasm
 from cirq.circuits import Circuit
 from pyvoqc.formatting.format_from_qasm import format_from_qasm
-from pyvoqc.cirq.voqc_optimization import VOQC
+from pyvoqc.cirq.voqc_optimization import CqVOQC
 import time
    
 def run(d,l):

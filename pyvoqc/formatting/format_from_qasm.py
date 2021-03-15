@@ -3,7 +3,7 @@ from gmpy2 import *
 import os.path
 from qiskit.qasm import pi
 import ast
-from wrapper.exceptions import InvalidVOQCGate
+from pyvoqc.exceptions import InvalidVOQCGate
 
 #Format from gates that are not compatible in Qiskit+VOQC and creates new file
 #Decomposes CCZ, CCX, RZQ, U1, U2, U3

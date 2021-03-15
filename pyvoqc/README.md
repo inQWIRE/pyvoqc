@@ -15,7 +15,7 @@ To pass a qiskit circuit to the VOQC optimizer, append `QisVOQC([list of optimiz
 *Example*: The following is a transpiler pass to VOQC using a circuit built in qiskit. 
 ```
 from qiskit.transpiler import PassManager
-from wrapper.qiskit.voqc_optimization import QisVOQC
+from pyvoqc.qiskit.voqc_optimization import QisVOQC
 from qiskit import QuantumCircuit
 
 #Build Quantum Circuit
@@ -38,7 +38,7 @@ Passing a Cirq circuit object to the VOQC compiler pass is similar to the built-
 *Example*: The following is a compiler pass to VOQC using a circuit built in Cirq. 
 ```
 import cirq
-from wrapper.cirq.voqc_optimization import CqVOQC
+from pyvoqc.cirq.voqc_optimization import CqVOQC
 
 #Build Circuit Object
 q_0 = cirq.NamedQubit("q_0")

@@ -5,11 +5,11 @@ import re
 import os
 from cirq import decompose
 from cirq.circuits import Circuit
-from wrapper.formatting.format_from_qasm import format_from_qasm
-from wrapper.formatting.rzq_to_rz import rzq_to_rz
-from wrapper.voqc import VOQC
-from wrapper.exceptions import InvalidVOQCFunction,InvalidVOQCGate
-from wrapper.cirq.decompose_cirq_gates import *
+from pyvoqc.formatting.format_from_qasm import format_from_qasm
+from pyvoqc.formatting.rzq_to_rz import rzq_to_rz
+from pyvoqc.voqc import VOQC
+from pyvoqc.exceptions import InvalidVOQCFunction,InvalidVOQCGate
+from pyvoqc.cirq.decompose_cirq_gates import *
 
 class CqVOQC:
     def __init__(self, func = None):

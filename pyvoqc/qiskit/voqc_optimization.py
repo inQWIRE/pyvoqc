@@ -4,9 +4,9 @@ from qiskit.transpiler.passes import Unroller
 from qiskit import QuantumCircuit
 from qiskit.transpiler.passes.basis import BasisTranslator
 from qiskit.transpiler import PassManager
-from wrapper.qiskit.voqc_equivalence_library import eq_lib
-from wrapper.voqc import VOQC
-from wrapper.exceptions import InvalidVOQCFunction, InvalidVOQCGate
+from pyvoqc.qiskit.voqc_equivalence_library import eq_lib
+from pyvoqc.voqc import VOQC
+from pyvoqc.exceptions import InvalidVOQCFunction, InvalidVOQCGate
 from qiskit.transpiler.exceptions import TranspilerError
 import os
 

@@ -10,8 +10,8 @@ import cirq
 from cirq.optimizers import MergeInteractions,MergeSingleQubitGates, EjectPhasedPaulis, EjectZ, DropNegligible, ConvertToCzAndSingleGates
 from cirq.contrib.qasm_import import circuit_from_qasm, qasm
 from cirq.circuits import Circuit
-from wrapper.formatting.format_from_qasm import format_from_qasm
-from wrapper.cirq.voqc_optimization import VOQC
+from pyvoqc.formatting.format_from_qasm import format_from_qasm
+from pyvoqc.cirq.voqc_optimization import VOQC
 import time
    
 def run(d,l):
@@ -27,7 +27,7 @@ def run(d,l):
         before = len(list(circ.all_operations()))
         print("Original:\t Total %d" % (len(list(circ.all_operations()))))
         start = time.time()
-        circ =  VOQC().optimize_circuit(circ)
+        circ =  CqVOQC().optimize_circuit(circ)
         end = time.time()
         first = end-start
         after_voqc = len(list(circ.all_operations()))

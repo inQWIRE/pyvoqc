@@ -6,7 +6,7 @@ VOQC is a **verified optimizer for quantum circuits**, implemented and *formally
 
 To run VOQC, we (1) extract the verified Coq code to OCaml, (2) compile the extracted OCaml code to a library, (3) wrap the OCaml library in C, and (4) provide a Python interface for the C wrapper.
 
-## Compiling VOQC
+### Installing Dependencies
 
 Dependencies:
   * OCaml version >= 4.08.1 
@@ -14,14 +14,19 @@ Dependencies:
   * zarith (`opam install zarith`)
   * OCaml OpenQASM parser (`opam install openQASM`)
 
-Run `dune build lib/libvoqc.so` in the top-level (pyvoqc) directory. This will produce `libvoqc.so` in _build/default/lib/.
+To install our dependencies we recommend using [opam](https://opam.ocaml.org/). A typical workflow on a new computer is:
+1. Install opam, following the directions [here](https://opam.ocaml.org/doc/Install.html). Note that you will need to run the following after installation:
+   ```
+   opam init
+   eval `opam config env`
+   ```
+   It is useful to add the `eval` line to your shell configuration file (e.g. `~/.bashrc`).
+2. Set up a new switch with a recent version of OCaml (e.g. `opam switch create voqc 4.10.0`).
+3. Install dependencies with `opam install dune zarith openQASM`.
 
-### Installing Dependencies
+## Installing VOQC
 
-To install our dependencies we recommend using [opam](https://opam.ocaml.org/doc/Install.html). A typical workflow on a new computer is:
-1. Install opam
-2. Set up a new switch with a recent version of OCaml (e.g. `opam switch create voqc 4.10.0`)
-3. Install dependencies with `opam install dune zarith openQASM`
+Run `./install.sh` in the current directory. This will build the VOQC C library using dune and "install" our Python bindings with pip.
 
 ### Troubleshooting
 
@@ -40,11 +45,11 @@ ocaml_wrapper.c:110:4: warning: initializing 'char *' with an expression of type
 
 Dependencies:
   * Python 3
-  * jupyter (for the tutorial, `pip3 install jupyter`)
+  * JuPyter and Qiskit (for the tutorial, `pip3 install jupyter qiskit`)
 
 The voqc.py file in the wrapper/ directory provides a simple wrapper around the VOQC library functions. Here is a minimal example of how to use it:
 ```
-from wrapper.voqc import VOQC
+from pyvoqc.voqc import VOQC
 
 # load circuit
 c = VOQC("tutorial-files/tof_3_example.qasm")

@@ -1,13 +1,13 @@
 import os
 import cirq
-from wrapper.formatting.format_from_qasm import format_from_qasm
-from wrapper.voqc import VOQC
+from pyvoqc.formatting.format_from_qasm import format_from_qasm
+from pyvoqc.voqc import VOQC
 from cirq.contrib.qasm_import import circuit_from_qasm, qasm
 from cirq.circuits import Circuit
-from wrapper.exceptions import InvalidVOQCFunction, InvalidVOQCGate
-from wrapper.cirq.voqc_optimization import CqVOQC
+from pyvoqc.exceptions import InvalidVOQCFunction, InvalidVOQCGate
+from pyvoqc.cirq.voqc_optimization import CqVOQC
 import unittest
-from wrapper.cirq.decompose_cirq_gates import *
+from pyvoqc.cirq.decompose_cirq_gates import *
 from cirq.circuits.qasm_output import QasmUGate
 import numpy as np
 from cirq import decompose
@@ -17,12 +17,12 @@ class TestQiskitInterop(unittest.TestCase):
     
     def test_AT(self):
         
-        before = format_from_qasm(os.path.join(rel, "wrapper/tests/test_qasm_files/tof_10.qasm"))
+        before = format_from_qasm(os.path.join(rel, "pyvoqc/tests/test_qasm_files/tof_10.qasm"))
         with open("copy.qasm", "r") as f:
             c = f.read()
         before = circuit_from_qasm(c)
         #c.close()
-        f = open(os.path.join(rel, "wrapper/tests/test_qasm_files/optim_tof_10.qasm"))
+        f = open(os.path.join(rel, "pyvoqc/tests/test_qasm_files/optim_tof_10.qasm"))
         t = f.read()
         f.close()
         after = circuit_from_qasm(t)

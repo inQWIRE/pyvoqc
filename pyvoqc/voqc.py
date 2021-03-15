@@ -43,8 +43,8 @@ class VOQC:
         self.optim = 0
         
         #Set path and lib
-        self.rel = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.lib = CDLL(os.path.join(self.rel,'_build/default/lib/libvoqc.so'))
+        rel = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # ..
+        self.lib = CDLL(os.path.join(rel,'_build/default/lib/libvoqc.so'))
 
         #Initialize OCaml code
         self.lib.init.argtypes = None
@@ -55,8 +55,7 @@ class VOQC:
         self.lib.read_qasm_file.argtypes = [c_char_p]
         self.lib.read_qasm_file.restype= c_void_p        
         start = time.time()
-        final_file = (os.path.join(self.rel, fname)).encode('utf-8')
-        self.circ = self.lib.read_qasm_file(final_file)
+        self.circ = self.lib.read_qasm_file(fname.encode('utf-8'))
         end = time.time()
 
         #Print time to parse and gate counts if not Cirq/Qiskit pass
@@ -181,8 +180,7 @@ class VOQC:
                 
         #Write qasm file
         start2 = time.time()
-        out_file = (os.path.join(self.rel,fname)).encode('utf-8')
-        self.lib.write_qasm_file(out_file, self.circ)
+        self.lib.write_qasm_file(fname.encode('utf-8'), self.circ)
         end2 = time.time()
        
         #Print time if not through external compiler

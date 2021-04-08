@@ -7,8 +7,8 @@ from qiskit.transpiler.passes import Unroller, Optimize1qGates, CommutationAnaly
 import sys
 import re
 import time
-from interop.qiskit.voqc_optimization import VOQC
-from interop.formatting.format_from_qasm import format_from_qasm
+from pyvoqc.qiskit.voqc_optimization import QisVOQC
+from pyvoqc.formatting.format_from_qasm import format_from_qasm
 import csv
 from qiskit.circuit.gate import Gate
 from qiskit.circuit.quantumregister import QuantumRegister
@@ -39,7 +39,7 @@ def run(d, l):
         print("Original:\t Total %d, CNOT %d" % (num_gates_before, cnot_count_before))
         
         pm = PassManager()
-        pm.append(VOQC(["optimize"]))
+        pm.append(QisVOQC(["optimize"]))
         start = time.perf_counter()
         new_circ = pm.run(circ)
         stop = time.perf_counter()

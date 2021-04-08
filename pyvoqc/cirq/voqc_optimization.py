@@ -5,13 +5,13 @@ import re
 import os
 from cirq import decompose
 from cirq.circuits import Circuit
-from interop.formatting.format_from_qasm import format_from_qasm
-from interop.formatting.rzq_to_rz import rzq_to_rz
-from interop.voqc import SQIR
-from interop.exceptions import InvalidVOQCFunction,InvalidVOQCGate
-from interop.cirq.decompose_cirq_gates import *
+from pyvoqc.formatting.format_from_qasm import format_from_qasm
+from pyvoqc.formatting.rzq_to_rz import rzq_to_rz
+from pyvoqc.voqc import VOQC
+from pyvoqc.exceptions import InvalidVOQCFunction,InvalidVOQCGate
+from pyvoqc.cirq.decompose_cirq_gates import *
 
-class VOQC:
+class CqVOQC:
     def __init__(self, func = None):
         self.functions = ["optimize", "not_propagation", "cancel_single_qubit_gates", "cancel_two_qubit_gates", "hadamard_reduction", "merge_rotations"]
         self.func = func if func else ["optimize"]
@@ -42,7 +42,7 @@ class VOQC:
         return circ
     
     def function_call(self,fname_in):
-        a = SQIR(fname_in, False)
+        a = VOQC(fname_in, False)
         for i in range(len(self.func)):
             call = getattr(a,self.func[i])
             call()

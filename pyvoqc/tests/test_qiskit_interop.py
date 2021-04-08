@@ -2,36 +2,36 @@ from qiskit import QuantumCircuit
 import os
 from qiskit.qasm import pi
 import warnings
-from interop.formatting.format_from_qasm import format_from_qasm
-from interop.voqc import SQIR
+from pyvoqc.formatting.format_from_qasm import format_from_qasm
+from pyvoqc.voqc import VOQC
 from qiskit.transpiler.passes.basis import BasisTranslator
 
-from interop.exceptions import InvalidVOQCFunction, InvalidVOQCGate
+from pyvoqc.exceptions import InvalidVOQCFunction, InvalidVOQCGate
 from qiskit.transpiler import PassManager
-from interop.qiskit.voqc_optimization import VOQC
-from interop.qiskit.voqc_equivalence_library import eq_lib
+from pyvoqc.qiskit.voqc_optimization import QisVOQC
+from pyvoqc.qiskit.voqc_equivalence_library import eq_lib
 from qiskit.converters import circuit_to_dag
 import unittest
-rel = os.path.join(os.path.dirname(os.path.abspath(__file__)), "benchmarks")
+rel = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 class TestQiskitInterop(unittest.TestCase):
 
     
     def test_AT(self):
-        before = format_from_qasm(os.path.join(rel, "Arithmetic_and_Toffoli/tof_10.qasm"))
+        before = format_from_qasm(os.path.join(rel, "pyvoqc/tests/test_qasm_files/tof_10.qasm"))
         before = QuantumCircuit.from_qasm_file("copy.qasm")
-        after = QuantumCircuit.from_qasm_file(os.path.join((os.path.dirname(os.path.abspath(__file__))), "interop/tests/optimized_qasm_files/optim_tof_10.qasm"))
+        after = QuantumCircuit.from_qasm_file(os.path.join(rel, "pyvoqc/tests/test_qasm_files/optim_tof_10.qasm"))
         self.assertEqual(self.run_voqc(before), after)
 
     def test_PF(self):
-        before = format_from_qasm(os.path.join(rel, "PF/pf2_100.qasm"))
+        before = format_from_qasm(os.path.join(rel, "pyvoqc/tests/test_qasm_files/pf2_100.qasm"))
         before = QuantumCircuit.from_qasm_file("copy.qasm")
-        after = QuantumCircuit.from_qasm_file(os.path.join((os.path.dirname(os.path.abspath(__file__))), "interop/tests/optimized_qasm_files/optim_pf2_100.qasm"))
+        after = QuantumCircuit.from_qasm_file(os.path.join(rel, "pyvoqc/tests/test_qasm_files/optim_pf2_100.qasm"))
         self.assertEqual(self.run_voqc(before), after)
 
     def test_QFT(self):
-        before = format_from_qasm(os.path.join(rel, "QFT_and_Adders/QFTAdd64.qasm"))
+        before = format_from_qasm(os.path.join(rel, "pyvoqc/tests/test_qasm_files/QFTAdd64.qasm"))
         before = QuantumCircuit.from_qasm_file("copy.qasm")
-        after = QuantumCircuit.from_qasm_file(os.path.join((os.path.dirname(os.path.abspath(__file__))), "interop/tests/optimized_qasm_files/optim_QFTAdd64.qasm"))
+        after = QuantumCircuit.from_qasm_file(os.path.join(rel, "pyvoqc/tests/test_qasm_files/optim_QFTAdd64.qasm"))
         self.assertEqual(self.run_voqc(before), after)
 
     def test_not_propagation(self):
@@ -134,7 +134,7 @@ class TestQiskitInterop(unittest.TestCase):
 
     def run_voqc(self, before, list_opt=None):
         pm = PassManager()
-        pm.append(VOQC(list_opt))
+        pm.append(QisVOQC(list_opt))
         new_circ = pm.run(before)
         return new_circ
 

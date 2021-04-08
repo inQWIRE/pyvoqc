@@ -1,32 +1,31 @@
 import os
 import cirq
-from interop.formatting.format_from_qasm import format_from_qasm
-from interop.voqc import SQIR
+from pyvoqc.formatting.format_from_qasm import format_from_qasm
+from pyvoqc.voqc import VOQC
 from cirq.contrib.qasm_import import circuit_from_qasm, qasm
 from cirq.circuits import Circuit
-from interop.exceptions import InvalidVOQCFunction, InvalidVOQCGate
-from interop.cirq.voqc_optimization import VOQC
+from pyvoqc.exceptions import InvalidVOQCFunction, InvalidVOQCGate
+from pyvoqc.cirq.voqc_optimization import CqVOQC
 import unittest
-from interop.cirq.decompose_cirq_gates import *
+from pyvoqc.cirq.decompose_cirq_gates import *
 from cirq.circuits.qasm_output import QasmUGate
 import numpy as np
 from cirq import decompose
-rel = os.path.join(os.path.dirname(os.path.abspath(__file__)), "benchmarks")
+rel = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 class TestQiskitInterop(unittest.TestCase):
 
     
     def test_AT(self):
         
-        before = format_from_qasm(os.path.join(rel, "Arithmetic_and_Toffoli/tof_10.qasm"))
+        before = format_from_qasm(os.path.join(rel, "pyvoqc/tests/test_qasm_files/tof_10.qasm"))
         with open("copy.qasm", "r") as f:
             c = f.read()
         before = circuit_from_qasm(c)
         #c.close()
-        f = open(os.path.join((os.path.dirname(os.path.abspath(__file__))), "interop/tests/optimized_qasm_files/optim_tof_10.qasm"))
+        f = open(os.path.join(rel, "pyvoqc/tests/test_qasm_files/optim_tof_10.qasm"))
         t = f.read()
         f.close()
         after = circuit_from_qasm(t)
-        #f.close()
         a = cirq.qasm(after)
         after = circuit_from_qasm(a)
         run = self.run_voqc(before)
@@ -93,7 +92,7 @@ class TestQiskitInterop(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.run_voqc(before)
     def run_voqc(self, before, list_opt=None):
-        new_circ = VOQC(list_opt).optimize_circuit(before)
+        new_circ = CqVOQC(list_opt).optimize_circuit(before)
         return new_circ
      
 if __name__ == "__main__":

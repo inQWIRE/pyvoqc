@@ -43,8 +43,8 @@ class VOQC:
         self.optim = 0
         
         #Set path and lib
-        rel = os.path.dirname(os.path.abspath(__file__)) # ..
-        self.lib = CDLL(os.path.join(rel,'lib/libvoqc.so'))
+        rel = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # ..
+        self.lib = CDLL(os.path.join(rel,'_build/default/lib/libvoqc.so'))
 
         #Initialize OCaml code
         self.lib.init.argtypes = None

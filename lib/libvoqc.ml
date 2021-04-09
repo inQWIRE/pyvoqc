@@ -1,27 +1,87 @@
-open Voqc.Optimize
-open Voqc.GateCancellation
-open Voqc.NotPropagation
-open Voqc.HadamardReduction
-open Voqc.RotationMerging
-open Voqc.RzQUtils
+open Voqc.Qasm
+open Voqc.Main
 
-(* Input/output values are pairs of (circuit * number of qubits).
-   The reason we track number of qubits is because it's used by our (naive) write_qasm function.
-   Note that none of our current optimizations change the number of qubits used.  *)
+(* Rather than writing (fun x y -> foo x y), we could just write "foo". But listing
+   the arguments helps me keep organized. -KH *)
+let () = Callback.register "read_qasm" (fun fname -> read_qasm fname)
+let () = Callback.register "write_qasm" (fun c nqbits fname -> write_qasm c nqbits fname)
 
-let () = Callback.register "optimize" (fun v -> (optimize (fst v), snd v))
-let () = Callback.register "cancel_single_qubit_gates" (fun v -> (cancel_single_qubit_gates (fst v), snd v))
-let () = Callback.register "cancel_two_qubit_gates" (fun v -> (cancel_two_qubit_gates (fst v), snd v))
-let () = Callback.register "hadamard_reduction" (fun v -> (hadamard_reduction (fst v), snd v))
-let () = Callback.register "not_propagation" (fun v -> (not_propagation (fst v), snd v))
-let () = Callback.register "merge_rotations" (fun v -> (merge_rotations (fst v), snd v))
-let () = Callback.register "write_qasm_file" (fun s v -> write_qasm_file s (fst v) (snd v))
-let () = Callback.register "read_qasm_file" get_gate_list 
-let () = Callback.register "x_count" (fun v -> get_x_count (fst v))
-let () = Callback.register "h_count" (fun v -> get_h_count (fst v))
-let () = Callback.register "rz_count" (fun v -> get_rz_count (fst v))
-let () = Callback.register "cnot_count" (fun v -> get_cnot_count (fst v))
-let () = Callback.register "t_count" (fun v -> match get_t_count (fst v) with Some n -> n | _ -> -1)
-let () = Callback.register "c_count" (fun v -> get_clifford_rot_count (fst v))
-let () = Callback.register "total_count" (fun v -> List.length (fst v))
-let () = Callback.register "write_qasm_file_str" (fun v -> write_qasm_file_str (fst v) (snd v))
+(* TODO: I will expose every count_<G> function in Voqc's next opam release. 
+   For now, a dumb fix. -KH *)
+let ()  = Callback.register "count_I" 
+  (fun c -> match count_gates c 
+            with BuildCounts (x, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_X"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, x, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_Y"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, x, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_Z"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, x, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_H"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, x, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_S"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, x, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_T"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, x, _, _, _, _, _, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_Sdg"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, x, _, _, _, _, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_Tdg"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, x, _, _, _, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_Rx" 
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, x, _, _, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_Ry"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, _, x, _, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_Rz"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, _, _, x, _, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_Rzq"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, _, _, _, x, _, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_U1"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, _, _, _, _, x, _, _, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_U2"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, _, _, _, _, _, x, _, _, _, _, _, _) -> x) 
+let ()  = Callback.register "count_U3"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, x, _, _, _, _, _) -> x)
+let ()  = Callback.register "count_CX"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, x, _, _, _, _) -> x)
+let ()  = Callback.register "count_CZ"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, x, _, _, _) -> x)
+let ()  = Callback.register "count_SWAP"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, x, _, _) -> x)
+let ()  = Callback.register "count_CCX"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, x, _) -> x)
+let ()  = Callback.register "count_CCZ"
+  (fun c -> match count_gates c 
+            with BuildCounts (_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, x) -> x)
+let () = Callback.register "decompose_to_cnot" decompose_to_cnot
+let () = Callback.register "replace_rzq" replace_rzq
+let ()  = Callback.register "total_gate_count" total_gate_count 
+
+
+let () = Callback.register "optimize_nam" optimize_nam
+let () = Callback.register "optimize_ibm" optimize_ibm
+
+let () = Callback.register "check_layout" (fun la n -> check_layout la n)
+let () = Callback.register "simple_map" (fun c la cg -> simple_map c la cg)
+let () = Callback.register "make_tenerife" make_tenerife
+let () = Callback.register "trivial_layout" trivial_layout
+let () = Callback.register "list_to_layout" list_to_layout
+let () = Callback.register "layout_to_list" (fun la n -> layout_to_list la n)

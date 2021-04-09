@@ -6,7 +6,7 @@ def readme():
 
 setup(
     name="pyvoqc",
-    version="0.0.1",
+    version="0.1.0",
     author="Kesha Hietala",
     author_email="kesha@cs.umd.edu",
     description="Python wrapper for the VOQC quantum circuit compiler",

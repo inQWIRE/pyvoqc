@@ -2,44 +2,35 @@
 
 This repository provides a Python wrapper around the VOQC quantum circuit compiler.
 
-VOQC is a **verified optimizer for quantum circuits**, implemented and *formally verified* in the [Coq proof assistant](https://coq.inria.fr/). All VOQC optimizations are *guaranteed* to preserve the semantics of the original circuit, meaning that any optimized circuit produced by VOQC has the same behavior as the input circuit. VOQC was presented as a [distinguished paper at POPL 2021](https://arxiv.org/abs/1912.02250); its code is available at [github.com/inQWIRE/SQIR](https://github.com/inQWIRE/SQIR).
+VOQC is a **verified optimizer for quantum circuits**, implemented and *formally verified* in the [Coq proof assistant](https://coq.inria.fr/). All VOQC optimizations are *guaranteed* to preserve the semantics of the original circuit, meaning that any optimized circuit produced by VOQC has the same behavior as the input circuit. VOQC was presented as a [distinguished paper at POPL 2021](https://arxiv.org/abs/1912.02250). Coq code and proofs are available at [github.com/inQWIRE/SQIR](https://github.com/inQWIRE/SQIR) and the extraced OCaml code (which the Python wraps) is available at [github.com/inQWIRE/mlvoqc](https://github.com/inQWIRE/mlvoqc)
 
 To run VOQC, we (1) extract the verified Coq code to OCaml, (2) compile the extracted OCaml code to a library, (3) wrap the OCaml library in C, and (4) provide a Python interface for the C wrapper.
 
-### Installing Dependencies
+### Setup
 
-Dependencies:
-  * OCaml version >= 4.08.1 
-  * dune (`opam install dune`)
-  * zarith (`opam install zarith`)
-  * OCaml OpenQASM parser (`opam install openQASM`)
+Although pyvoqc is a Python package, it requires OCaml to build the underlying library code. At some point in the future we will remove this dependency by pre-compiling binaries, but for now you will need to install [opam](https://opam.ocaml.org/doc/Install.html). Once you have opam installed, follow the instructions below to set up your environment.
+```
+# environment setup
+opam init
+eval $(opam env)
 
-To install our dependencies we recommend using [opam](https://opam.ocaml.org/). A typical workflow on a new computer is:
-1. Install opam, following the directions [here](https://opam.ocaml.org/doc/Install.html). Note that you will need to run the following after installation:
-   ```
-   opam init
-   eval `opam config env`
-   ```
-   It is useful to add the `eval` line to your shell configuration file (e.g. `~/.bashrc`).
-2. Set up a new switch with a recent version of OCaml (e.g. `opam switch create voqc 4.10.0`).
-3. Install dependencies with `opam install dune zarith openQASM`.
+# install some version of the OCaml compiler in a switch named "voqc"
+opam switch create voqc 4.10.0
+eval $(opam env)
 
-## Installing VOQC
+# install voqc (current supported version is 0.2.0)
+opam install voqc.0.2.0
+```
 
-Run `./install.sh` in the current directory. This will build the VOQC C library using dune and "install" our Python bindings with pip.
+*Notes*:
+* Depending on your system, you may need to replace 4.10.0 in the instructions above with something like "ocaml-base-compiler.4.10.0". Opam error messages and warnings are typically informative, so if you run into trouble then make sure you read the console output.
 
-### Troubleshooting
+### Installation
 
+After installing voqc through opam (following the instructions in setup above), run `./install.sh`. This will build the VOQC library using dune and then "install" our Python package with pip.
+
+*Notes:*
 * If you are building the voqc library on a Mac, you will likely see the warning `ld: warning: directory not found for option '-L/opt/local/lib'`. This is due to zarith (see [ocaml/opam-repository#3000](https://github.com/ocaml/opam-repository/issues/3000)) and seems to be fine to ignore.
-* You may also see the following warning from our C wrapper code... we'll fix this at some point.
-```
-ocaml_wrapper.c:110:4: warning: initializing 'char *' with an expression of type 'const char *' discards qualifiers [-Wincompatible-pointer-types-discards-qualifiers]
-   CAMLreturnT(char*, String_val(caml_callback(*closure, *circ)));
-   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Users/kesha/.opam/4.10.0/lib/ocaml/caml/memory.h:475:8: note: expanded from macro 'CAMLreturnT'
-  type caml__temp_result = (result); \
-       ^                   ~~~~~~~~
-```
 
 ## Running VOQC
 

@@ -15,10 +15,10 @@ To pass a qiskit circuit to the VOQC optimizer, append `QisVOQC([list of optimiz
 *Example*: The following is a transpiler pass to VOQC using a circuit built in qiskit. 
 ```
 from qiskit.transpiler import PassManager
-from pyvoqc.qiskit.voqc_optimization import QisVOQC
+from pyvoqc.qiskit.voqc_pass import QiskitVOQC
 from qiskit import QuantumCircuit
 
-#Build Quantum Circuit
+# build quantum circuit
 circ = QuantumCircuit(2)
 circ.cx(0, 1)
 circ.cx(0, 1)
@@ -27,7 +27,7 @@ circ.h(0)
 #Pass to VOQC
 pm = PassManager()
 #Call cancel_two_qubit_gates
-pm.append(QisVOQC(["cancel_two_qubit_gates"]))
+pm.append(QiskitVOQC(["optimize_nam"]))
 new_circ = pm.run(circ)
 ```
 

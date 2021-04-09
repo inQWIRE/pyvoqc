@@ -1,1 +1,1 @@
-from .voqc_optimization import QisVOQC
+from .voqc_pass import QiskitVOQC

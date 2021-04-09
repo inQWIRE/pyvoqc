@@ -14,10 +14,19 @@ class QiskitVOQC(TransformationPass):
         
         super().__init__()
         self.voqc_functions = [
+            "convert_to_rzq",
+            "convert_to_ibm",
             "decompose_to_cnot", 
-            "replace_rzq", 
-            "optimize_nam",
+            "replace_rzq",
+            "optimize_1q_gates",
+            "cx_cancellation",
             "optimize_ibm",
+            "not_propagation",
+            "hadamard_reduction",
+            "cancel_single_qubit_gates",
+            "cancel_two_qubit_gates",
+            "merge_rotations",
+            "optimize_nam",
             "simple_map" ]
         self.voqc_gates = ['i', 'x', 'y', 'z', 'h', 's', 't', 'sdg', 'tdg', 'rx', 'ry', 
                            'rz', 'rzq', 'u1', 'u2', 'u3', 'cx', 'cz', 'swap', 'ccx', 'ccz']

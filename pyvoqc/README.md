@@ -27,7 +27,7 @@ circ.h(0)
 #Pass to VOQC
 pm = PassManager()
 #Call cancel_two_qubit_gates
-pm.append(QiskitVOQC(["optimize_nam"]))
+pm.append(QiskitVOQC(["cancel_two_qubit_gates"]))
 new_circ = pm.run(circ)
 ```
 

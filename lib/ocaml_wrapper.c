@@ -172,9 +172,27 @@ int count_CCZ (value* circ) {
    return Int_val(caml_callback(*closure, *circ));
 }
 
+int count_clifford_rzq (value* circ) {
+   CLOSURE("count_clifford_rzq");
+   return Int_val(caml_callback(*closure, *circ));
+}
+
 int total_gate_count (value* circ) {
    CLOSURE("total_gate_count");
    return Int_val(caml_callback(*closure, *circ));
+}
+
+int check_well_typed (value* circ, int nqbits) {
+    CLOSURE("check_well_typed");
+    return Bool_val(caml_callback2(*closure, *circ, Val_int(nqbits)));
+}
+
+value* convert_to_rzq (value* circ) {
+   RUNOPT("convert_to_rzq", circ);
+}
+
+value* convert_to_ibm (value* circ) {
+   RUNOPT("convert_to_ibm", circ);
 }
 
 value* decompose_to_cnot (value* circ) {
@@ -185,17 +203,55 @@ value* replace_rzq (value* circ) {
    RUNOPT("replace_rzq", circ);
 }
 
-value* optimize_nam (value* circ) {
-   RUNOPT("optimize_nam", circ);
+value* optimize_1q_gates (value* circ) {
+   RUNOPT("optimize_1q_gates", circ);
+}
+
+value* cx_cancellation (value* circ) {
+   RUNOPT("cx_cancellation", circ);
 }
 
 value* optimize_ibm (value* circ) {
    RUNOPT("optimize_ibm", circ);
 }
 
+value* not_propagation (value* circ) {
+   RUNOPT("not_propagation", circ);
+}
+
+value* hadamard_reduction (value* circ) {
+   RUNOPT("hadamard_reduction", circ);
+}
+
+value* cancel_single_qubit_gates (value* circ) {
+   RUNOPT("cancel_single_qubit_gates", circ);
+}
+
+value* cancel_two_qubit_gates (value* circ) {
+   RUNOPT("cancel_two_qubit_gates", circ);
+}
+
+value* merge_rotations (value* circ) {
+   RUNOPT("merge_rotations", circ);
+}
+
+value* optimize_nam (value* circ) {
+   RUNOPT("optimize_nam", circ);
+}
+
 int check_layout (value* layout, int nqbits) {
     CLOSURE("check_layout");
     return Bool_val(caml_callback2(*closure, *layout, Val_int(nqbits)));
+}
+
+int check_graph (value* c_graph) {
+    CLOSURE("check_graph");
+    return Bool_val(caml_callback(*closure, *c_graph));
+}
+
+int check_constraints (value* circ, value* c_graph) {
+    CLOSURE("check_constraints");
+    return Bool_val(caml_callback2(*closure, *circ, *c_graph));
 }
 
 CircLayoutPair simple_map (value* circ, value* layout, value* c_graph) {
@@ -214,6 +270,30 @@ value* make_tenerife () {
     CAMLlocal1(res);
     CLOSURE("make_tenerife");
     res = caml_callback(*closure, Val_unit);
+    CAMLreturnT(value*, wrap(res));
+}
+
+value* make_lnn (int nqbits) {
+    CAMLparam0();
+    CAMLlocal1(res);
+    CLOSURE("make_lnn");
+    res = caml_callback(*closure, Val_int(nqbits));
+    CAMLreturnT(value*, wrap(res));
+}
+
+value* make_lnn_ring (int nqbits) {
+    CAMLparam0();
+    CAMLlocal1(res);
+    CLOSURE("make_lnn_ring");
+    res = caml_callback(*closure, Val_int(nqbits));
+    CAMLreturnT(value*, wrap(res));
+}
+
+value* make_grid (int nrows, int ncols) {
+    CAMLparam0();
+    CAMLlocal1(res);
+    CLOSURE("make_grid");
+    res = caml_callback2(*closure, Val_int(nrows), Val_int(ncols));
     CAMLreturnT(value*, wrap(res));
 }
 

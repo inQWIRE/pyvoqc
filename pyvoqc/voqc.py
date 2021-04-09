@@ -48,8 +48,8 @@ class VOQC:
         self.lib.destroy.argtypes = [c_void_p]
         self.lib.destroy.restype = None
         self.lib.destroy(self.circ) 
-        self.lib.destroy(self.layout)
-        self.lib.destroy(self.c_graph)   
+        if self.layout: self.lib.destroy(self.layout)
+        if self.c_graph: self.lib.destroy(self.c_graph)   
 
     def write(self, fname):
 
@@ -126,6 +126,11 @@ class VOQC:
                  "CCZ" : self.lib.count_CCZ(self.circ) }
         return filter_counts(cnts)
 
+    def count_clifford_rzq(self):
+        self.lib.count_clifford_rzq.argtypes = [c_void_p]
+        self.lib.count_clifford_rzq.restype = c_int
+        return self.lib.count_clifford_rzq(self.circ)
+
     def total_gate_count(self):
         self.lib.total_gate_count.argtypes = [c_void_p]
         self.lib.total_gate_count.restype = c_int
@@ -140,6 +145,25 @@ class VOQC:
         else:
             print("No current layout.")
 
+    def check_well_typed(self, nqbits):
+        if nqbits != self.nqbits:
+            print("Warning: the provided value of nqbits was %d, but the value of self.nqbits is %d." % (nqbits, self.nqbits))
+        self.lib.check_well_typed.argtypes = [c_void_p, c_int]
+        self.lib.check_well_typed.restype = c_int
+        return (self.lib.check_well_typed(self.circ, nqbits) == 1)
+
+    def convert_to_rzq(self):        
+        self.lib.convert_to_rzq.argtypes = [c_void_p]
+        self.lib.convert_to_rzq.restype = c_void_p
+        self.circ = self.lib.convert_to_rzq(self.circ)
+        return self
+
+    def convert_to_ibm(self):        
+        self.lib.convert_to_ibm.argtypes = [c_void_p]
+        self.lib.convert_to_ibm.restype = c_void_p
+        self.circ = self.lib.convert_to_ibm(self.circ)
+        return self
+
     def decompose_to_cnot(self):        
         self.lib.decompose_to_cnot.argtypes = [c_void_p]
         self.lib.decompose_to_cnot.restype = c_void_p
@@ -152,19 +176,91 @@ class VOQC:
         self.circ = self.lib.replace_rzq(self.circ)
         return self
 
-    def optimize_nam(self):        
-        self.lib.optimize_nam.argtypes = [c_void_p]
-        self.lib.optimize_nam.restype = c_void_p
-        self.circ = self.lib.optimize_nam(self.circ)
+    def optimize_1q_gates(self):        
+        self.lib.optimize_1q_gates.argtypes = [c_void_p]
+        self.lib.optimize_1q_gates.restype = c_void_p
+        self.circ = self.lib.optimize_1q_gates(self.circ)
         return self
-        
+
+    def cx_cancellation(self):        
+        self.lib.cx_cancellation.argtypes = [c_void_p]
+        self.lib.cx_cancellation.restype = c_void_p
+        self.circ = self.lib.cx_cancellation(self.circ)
+        return self
+
     def optimize_ibm(self):        
         self.lib.optimize_ibm.argtypes = [c_void_p]
         self.lib.optimize_ibm.restype = c_void_p
         self.circ = self.lib.optimize_ibm(self.circ)
         return self
 
-    def make_tenerife(self):        
+    def not_propagation(self):        
+        self.lib.not_propagation.argtypes = [c_void_p]
+        self.lib.not_propagation.restype = c_void_p
+        self.circ = self.lib.not_propagation(self.circ)
+        return self
+    
+    def hadamard_reduction(self):        
+        self.lib.hadamard_reduction.argtypes = [c_void_p]
+        self.lib.hadamard_reduction.restype = c_void_p
+        self.circ = self.lib.hadamard_reduction(self.circ)
+        return self
+        
+    def cancel_single_qubit_gates(self):        
+        self.lib.cancel_single_qubit_gates.argtypes = [c_void_p]
+        self.lib.cancel_single_qubit_gates.restype = c_void_p
+        self.circ = self.lib.cancel_single_qubit_gates(self.circ)
+        return self
+        
+    def cancel_two_qubit_gates(self):        
+        self.lib.cancel_two_qubit_gates.argtypes = [c_void_p]
+        self.lib.cancel_two_qubit_gates.restype = c_void_p
+        self.circ = self.lib.cancel_two_qubit_gates(self.circ)
+        return self
+        
+    def merge_rotations(self):        
+        self.lib.merge_rotations.argtypes = [c_void_p]
+        self.lib.merge_rotations.restype = c_void_p
+        self.circ = self.lib.merge_rotations(self.circ)
+        return self
+        
+    def optimize_nam(self):        
+        self.lib.optimize_nam.argtypes = [c_void_p]
+        self.lib.optimize_nam.restype = c_void_p
+        self.circ = self.lib.optimize_nam(self.circ)
+        return self
+
+    def check_layout(self):
+        if not self.layout:
+            print("Layout is not set. Call 'trivial_layout' or 'layout_from_list'.")
+        else:
+            self.lib.check_layout.argtypes = [c_void_p, c_int]
+            self.lib.check_layout.restype = c_int
+            return (self.lib.check_layout(self.layout, self.nqbits) == 1)
+            
+    def check_graph(self):
+        if not self.c_graph:
+            print("Connectivity graph is not set.")
+        else:
+            self.lib.check_graph.argtypes = [c_void_p]
+            self.lib.check_graph.restype = c_int
+            return (self.lib.check_graph(self.c_graph) == 1)
+    
+    def check_constraints(self):
+        if not self.c_graph:
+            print("Connectivity graph is not set.")
+        else:
+            self.lib.check_constraints.argtypes = [c_void_p, c_void_p]
+            self.lib.check_constraints.restype = c_int
+            return (self.lib.check_constraints(self.circ, self.c_graph) == 1)
+
+    def make_tenerife(self):
+        self.lib.destroy.argtypes = [c_void_p]
+        self.lib.destroy.restype = None
+        
+        if self.c_graph: # delete old c_graph
+            self.lib.destroy(self.c_graph)
+
         self.lib.make_tenerife.argtypes = None
         self.lib.make_tenerife.restype = c_void_p
         self.c_graph = self.lib.make_tenerife()
@@ -173,8 +269,48 @@ class VOQC:
         self.nqbits = 5
         if self.layout:
             print("Deleting old layout. You will need to provide a new layout.")
-            self.lib.destroy.argtypes = [c_void_p]
-            self.lib.destroy.restype = None
+            self.lib.destroy(self.layout)
+            self.layout = None
+    
+    def make_lnn(self, nqbits):        
+        self.lib.destroy.argtypes = [c_void_p]
+        self.lib.destroy.restype = None
+        if self.c_graph:
+            self.lib.destroy(self.c_graph)
+        self.lib.make_lnn.argtypes = [c_int]
+        self.lib.make_lnn.restype = c_void_p
+        self.c_graph = self.lib.make_lnn(nqbits)
+        self.nqbits = nqbits
+        if self.layout:
+            print("Deleting old layout. You will need to provide a new layout.")
+            self.lib.destroy(self.layout)
+            self.layout = None
+
+    def make_lnn_ring(self, nqbits):        
+        self.lib.destroy.argtypes = [c_void_p]
+        self.lib.destroy.restype = None
+        if self.c_graph:
+            self.lib.destroy(self.c_graph)
+        self.lib.make_lnn_ring.argtypes = [c_int]
+        self.lib.make_lnn_ring.restype = c_void_p
+        self.c_graph = self.lib.make_lnn_ring(nqbits)
+        self.nqbits = nqbits
+        if self.layout:
+            print("Deleting old layout. You will need to provide a new layout.")
+            self.lib.destroy(self.layout)
+            self.layout = None
+
+    def make_grid(self, nrows, ncols):        
+        self.lib.destroy.argtypes = [c_void_p]
+        self.lib.destroy.restype = None
+        if self.c_graph:
+            self.lib.destroy(self.c_graph)
+        self.lib.make_grid.argtypes = [c_int, c_int]
+        self.lib.make_grid.restype = c_void_p
+        self.c_graph = self.lib.make_grid(nrows, ncols)
+        self.nqbits = nrows * ncols
+        if self.layout:
+            print("Deleting old layout. You will need to provide a new layout.")
             self.lib.destroy(self.layout)
             self.layout = None
 
@@ -188,14 +324,6 @@ class VOQC:
             self.lib.trivial_layout.restype = c_void_p 
             self.layout = self.lib.trivial_layout(nqbits)
             self.nqbits = nqbits
-    
-    def check_layout(self):
-        if not self.layout:
-            print("Layout is not set. Call 'trivial_layout' or 'layout_from_list'.")
-        else:
-            self.lib.check_layout.argtypes = [c_void_p, c_int]
-            self.lib.check_layout.restype = c_int
-            return (self.lib.check_layout(self.layout, self.nqbits) == 1)
     
     def layout_to_list(self):
         if not self.layout:

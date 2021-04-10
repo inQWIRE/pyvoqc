@@ -17,7 +17,10 @@ eval $(opam env)
 # install some version of the OCaml compiler in a switch named "voqc"
 opam switch create voqc 4.10.0
 eval $(opam env)
+```
 
+Now, to install VOQC, run:
+```
 # install voqc (current supported version is 0.2.0)
 opam install voqc.0.2.0
 ```
@@ -27,7 +30,7 @@ opam install voqc.0.2.0
 
 ### Installation
 
-After installing voqc through opam (following the instructions in setup above), run `./install.sh`. This will build the VOQC library using dune and then "install" our Python package with pip.
+After installing voqc through opam (following the instructions in [Setup](#setup) above), run `./install.sh`. This will build the VOQC library using dune and then "install" our Python package with pip.
 
 *Notes:*
 * If you are building the voqc library on a Mac, you will likely see the warning `ld: warning: directory not found for option '-L/opt/local/lib'`. This is due to zarith (see [ocaml/opam-repository#3000](https://github.com/ocaml/opam-repository/issues/3000)) and seems to be fine to ignore.
@@ -38,7 +41,7 @@ Dependencies:
   * Python 3
   * JuPyter and Qiskit (for the tutorial, `pip3 install jupyter qiskit`)
 
-The voqc.py file in the wrapper/ directory provides a simple wrapper around the VOQC library functions. Here is a minimal example of how to use it:
+The voqc.py file in the pyvoqc/ directory provides a simple wrapper around the VOQC library functions. Here is a minimal example of how to use it:
 ```
 from pyvoqc.voqc import VOQC
 
@@ -51,9 +54,6 @@ c.cancel_single_qubit_gates()
 # print current gate counts
 c.print_info()
 
-# run all optimizations
-c.optimize()
-
 # write the optimized file
 c.write("out.qasm")
 ```
@@ -62,37 +62,63 @@ We also provide support for running VOQC as a pass in Qiskit's PassManager. You 
 
 ## Directory Contents
 
-* `lib` contains code for building a VOQC C libary.
-* `lib/ml` contains (1)  OCaml code extracted from our verified Coq definitions and (2) hand-written OCaml harness code. This code is all from the [SQIR](https://github.com/inQWIRE/SQIR) repository and SHOULD NOT be edited from the pyvoqc directory. We will periodically update code in the `lib/ml` directory to be consistent with the current Coq development.
-* `wrapper/` contains the Python wrapper code.
+* `lib` contains code for building a C libary that wraps around the OCaml VOQC package.
+* `pyvoqc/` contains the Python wrapper code.
 * `tutorial_files/` contains files for the pyvoqc tutorial.
 
 ## API
 
 VOQC currently supports the OpenQASM 2.0 file format, excluding measurement, and the following gates:
-* t, tdg
-* s, sdg
-* z
-* rzq(num,den) where num and den are integer expressions
-* rz(f) where f is a float expression, possibly including the constant pi
+* i, x, y, z
 * h
-* x
+* s, sdg
+* t, tdg
+* rx(f), ry(f), rz(f)
+* rzq(i,i)
+* u1(f)
+* u2(f,f)
+* u3(f,f,f)
 * cx
+* cz
+* swap
 * ccx
 * ccz
 
-rzq is a non-standard gate that we have defined specifically for VOQC. rzq(num,den) performs a rotation about the z-axis by ((num /den) * pi) for integers num and den. We have defined the gate this way to avoid floating point numbers, which significantly complicate verification. Gates of the form rz(f) are automatically converted into our rzq form by dividing the float f by pi and converting the result to its rational representation.
+Above, "f" is a float expression (possibly including the constant pi) and "i" is an integer expression. rzq is a non-standard gate that we have defined specifically for VOQC. rzq(num,den) performs a rotation about the z-axis by ((num /den) * pi) for integers num and den. We have defined the gate this way to avoid floating point numbers, which significantly complicate verification. 
 
 The following functions are exposed by our Python interface:
 * `VOQC(fname)` VOQC class constructor, takes an OpenQASM filename as input
-* `not_propagation` 
+* `print_info` Print circuit information
+* `write` Write circuit to a qasm file
+* `count_gates`
+* `count_clifford_rzq`
+* `total_gate_count`
+* `check_well_typed`
+* `convert_to_rzq`
+* `convert_to_ibm`
+* `decompose_to_cnot`
+* `replace_rzq`
+* `optimize_1q_gates`
+* `cx_cancellation`
+* `optimize_ibm`
+* `not_propagation`
 * `hadamard_reduction`
 * `cancel_single_qubit_gates`
 * `cancel_two_qubit_gates`
 * `merge_rotations`
-* `optimize` Applies all the optimizations above in a pre-determined order
-* `print_info`
-* `write`
+* `optimize_nam`
+* `check_layout`
+* `check_graph`
+* `check_constraints`
+* `make_tenerife`
+* `make_lnn`
+* `make_lnn_ring`
+* `make_grid`
+* `trivial_layout`
+* `layout_to_list`
+* `list_to_layout`
+* `simple_map`
+There are examples of using some of these functions in our tutorial. Otherwise, you can use the [documentation for our OCaml library](https://inqwire.github.io/mlvoqc/voqc/Voqc/index.html) for reference.
 
 ## Acknowledgements
 

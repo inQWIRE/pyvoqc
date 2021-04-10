@@ -10,7 +10,7 @@ VOQC is currently compatible with the following frameworks:
 
 ## Using VOQC Transpiler Pass in Qiskit
 
-To pass a qiskit circuit to the VOQC optimizer, append `QisVOQC([list of optimizations])` to a pass manager. The argument `list of optimizations` is an optional argument that allows custom optimizations to be run. Appending `VOQC()` to a pass manager without a list will run the main optimize function in VOQC. The client file must be run from the `pyvoqc` directory.
+To pass a qiskit circuit to the VOQC optimizer, append `QiskitVOQC([list of optimizations])` to a pass manager. The argument `list of optimizations` is an optional argument that allows custom optimizations to be run. Appending `VOQC()` to a pass manager without a list will run the main optimize function in VOQC. The client file must be run from the `pyvoqc` directory.
 
 *Example*: The following is a transpiler pass to VOQC using a circuit built in qiskit. 
 ```
@@ -23,12 +23,15 @@ circ = QuantumCircuit(2)
 circ.cx(0, 1)
 circ.cx(0, 1)
 circ.h(0)
+print(circ)
 
-#Pass to VOQC
+# create PassManager
 pm = PassManager()
-#Call cancel_two_qubit_gates
+
+# call cancel_two_qubit_gates
 pm.append(QiskitVOQC(["cancel_two_qubit_gates"]))
 new_circ = pm.run(circ)
+print(new_circ)
 ```
 
 ## Using VOQC Optimization Pass in Cirq

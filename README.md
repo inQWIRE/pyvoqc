@@ -10,7 +10,9 @@ To run VOQC, we (1) extract the verified Coq code to OCaml, (2) compile the extr
 
 * [Setup](#setup)
 * [Installation](#installation)
-
+* [Tutorial](#tutorial)
+* [Directory Contents](#directory-contents)
+* [API](#api)
 * [Acknowledgements](#acknowledgements)
 
 ## Setup
@@ -49,11 +51,13 @@ After installing voqc through opam (following the instructions under [Setup](#se
 
 To check that installation worked, open a Python shell and try `from pyvoqc.voqc import VOQC`.
 
-## Tutorials
+## Tutorial
 
-The tutorials require JuPyter and Qiskit (`pip install jupyter qiskit`). 
+The tutorial requires JuPyter and Qiskit (`pip install jupyter qiskit`). 
 
-To run the tutorials locally, run `jupyter notebook` on the command line from the pyvoqc directory and open (for example) http://localhost:8888/notebooks/tutorial.ipynb. To view the tutorials online, go to https://nbviewer.jupyter.org/ and copy the link of the relevant tutorial when prompted. Note that you will not be able to run code examples online.
+To run the tutorial locally, run `jupyter notebook` on the command line from the pyvoqc directory and open http://localhost:8888/notebooks/tutorial.ipynb. 
+
+You *should* be able to view the tutorial on GitHub, but if that fails then go to https://nbviewer.jupyter.org/github/inQWIRE/pyvoqc/blob/main/tutorial.ipynb.
 
 ## Directory Contents
 

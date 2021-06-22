@@ -6,7 +6,16 @@ VOQC is a **verified optimizer for quantum circuits**, implemented and *formally
 
 To run VOQC, we (1) extract the verified Coq code to OCaml, (2) compile the extracted OCaml code to a library, (3) wrap the OCaml library in C, and (4) provide a Python interface for the C wrapper.
 
-### Setup
+## Table of Contents
+
+* [Setup](#setup)
+* [Installation](#installation)
+
+* [Acknowledgements](#acknowledgements)
+
+## Setup
+
+pyvoqc requires **Python 3** and a compatible version of pip. We recommend using [Anaconda](https://www.anaconda.com/products/individual) to make sure you get the right versions (see the instructions for setting up a Qiskit environment [here](https://qiskit.org/documentation/getting_started.html))
 
 Although pyvoqc is a Python package, it requires OCaml to build the underlying library code. At some point in the future we will remove this dependency by pre-compiling binaries, but for now you will need to install [opam](https://opam.ocaml.org/doc/Install.html). Once you have opam installed, follow the instructions below to set up your environment.
 ```
@@ -21,44 +30,30 @@ eval $(opam env)
 
 Now, to install VOQC, run:
 ```
-# install voqc (current supported version is 0.2.0)
-opam install voqc.0.2.0
+# get the most recent package list
+opam update
+
+# install current supported version of voqc (0.2.1)
+opam install voqc.0.2.1
 ```
 
 *Notes*:
 * Depending on your system, you may need to replace 4.10.0 in the instructions above with something like "ocaml-base-compiler.4.10.0". Opam error messages and warnings are typically informative, so if you run into trouble then make sure you read the console output.
 
-### Installation
+## Installation
 
-After installing voqc through opam (following the instructions in [Setup](#setup) above), run `./install.sh`. This will build the VOQC library using dune and then "install" our Python package with pip.
+After installing voqc through opam (following the instructions under [Setup](#setup) above), run `./install.sh`. This will build the VOQC library using dune and then "install" our Python package with pip.
 
 *Notes:*
 * If you are building the voqc library on a Mac, you will likely see the warning `ld: warning: directory not found for option '-L/opt/local/lib'`. This is due to zarith (see [ocaml/opam-repository#3000](https://github.com/ocaml/opam-repository/issues/3000)) and seems to be fine to ignore.
 
-## Running VOQC
+To check that installation worked, open a Python shell and try `from pyvoqc.voqc import VOQC`.
 
-Dependencies:
-  * Python 3
-  * JuPyter and Qiskit (for the tutorial, `pip3 install jupyter qiskit`)
+## Tutorials
 
-The voqc.py file in the pyvoqc/ directory provides a simple wrapper around the VOQC library functions. Here is a minimal example of how to use it:
-```
-from pyvoqc.voqc import VOQC
+The tutorials require JuPyter and Qiskit (`pip install jupyter qiskit`). 
 
-# load circuit
-c = VOQC("tutorial-files/tof_3_example.qasm")
-
-# run a single optimization (in this case, 1q gate cancellation)
-c.cancel_single_qubit_gates()
-
-# print current gate counts
-c.print_info()
-
-# write the optimized file
-c.write("out.qasm")
-```
-
-We also provide support for running VOQC as a pass in Qiskit's PassManager. You can find the details in our [tutorial](tutorial.ipynb). You *should* be able to view our tutorial on GitHub, but if this fails then go to https://nbviewer.jupyter.org/ and copy the link https://github.com/inQWIRE/pyvoqc/blob/main/tutorial.ipynb when prompted. To run the tutorial locally, run `jupyter notebook` on the command line from the pyvoqc directory and open http://localhost:8888/notebooks/tutorial.ipynb.
+To run the tutorials locally, run `jupyter notebook` on the command line from the pyvoqc directory and open (for example) http://localhost:8888/notebooks/tutorial.ipynb. To view the tutorials online, go to https://nbviewer.jupyter.org/ and copy the link of the relevant tutorial when prompted. Note that you will not be able to run code examples online.
 
 ## Directory Contents
 

@@ -62,10 +62,13 @@ class QiskitVOQC(TransformationPass):
     def call_functions(self, inf, outf):
         v = VOQC(inf)
         for i in range(len(self.funcs)):
+            # TODO: simple_map support is a little sketchy
             if self.funcs[i] == "simple_map":
                 if not (v.c_graph and v.layout):
                     print("'simple_map' requires the connectivity graph and layout to be set. Skipping this pass.")
                     continue
             call = getattr(v, self.funcs[i])
             call()
+        # TODO: not always necessary to call replace_rzq
+        v.replace_rzq()
         v.write(outf)  

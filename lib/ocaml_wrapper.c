@@ -7,6 +7,27 @@
 #include <caml/callback.h>
 #include "ocaml_wrapper.h"
 
+/* From the OCaml Reference Manual:
+
+"Living in Harmony with the Garbage Collector"
+
+Rule ‍1  A function that has parameters or local variables of type value must 
+        begin with a call to one of the CAMLparam macros and return with CAMLreturn, 
+        CAMLreturn0, or CAMLreturnT. In particular, CAMLlocal and CAMLxparam can only 
+        be called after CAMLparam.
+Rule ‍2  Local variables of type value must be declared with one of the CAMLlocal macros. 
+        Arrays of values are declared with CAMLlocalN. These macros must be used at the 
+        beginning of the function, not in a nested block.
+Rule ‍3  Assignments to the fields of structured blocks must be done with the Store_field 
+        macro (for normal blocks) or Store_double_field macro (for arrays and records of 
+        floating-point numbers). Other assignments must not use Store_field nor 
+        Store_double_field.
+Rule ‍4  Global variables containing values must be registered with the garbage collector 
+        using the caml_register_global_root function, save that global variables and 
+        locations that will only ever contain OCaml integers (and never pointers) do not 
+        have to be registered.
+*/
+
 // CLOSURE, wrap, destroy taken from https://github.com/xoolive/facile
 
 #define CLOSURE(A)\
@@ -172,13 +193,13 @@ int count_CCZ (value* circ) {
    return Int_val(caml_callback(*closure, *circ));
 }
 
-int count_clifford_rzq (value* circ) {
-   CLOSURE("count_clifford_rzq");
+int count_total (value* circ) {
+   CLOSURE("count_total");
    return Int_val(caml_callback(*closure, *circ));
 }
 
-int total_gate_count (value* circ) {
-   CLOSURE("total_gate_count");
+int count_rzq_clifford (value* circ) {
+   CLOSURE("count_rzq_clifford");
    return Int_val(caml_callback(*closure, *circ));
 }
 
@@ -201,14 +222,6 @@ value* decompose_to_cnot (value* circ) {
 
 value* replace_rzq (value* circ) {
    RUNOPT("replace_rzq", circ);
-}
-
-value* optimize_1q_gates (value* circ) {
-   RUNOPT("optimize_1q_gates", circ);
-}
-
-value* cx_cancellation (value* circ) {
-   RUNOPT("cx_cancellation", circ);
 }
 
 value* optimize_ibm (value* circ) {
@@ -239,61 +252,16 @@ value* optimize_nam (value* circ) {
    RUNOPT("optimize_nam", circ);
 }
 
-int check_layout (value* layout, int nqbits) {
-    CLOSURE("check_layout");
-    return Bool_val(caml_callback2(*closure, *layout, Val_int(nqbits)));
+value* optimize (value* circ) {
+   RUNOPT("optimize", circ);
 }
 
-int check_graph (value* c_graph) {
-    CLOSURE("check_graph");
-    return Bool_val(caml_callback(*closure, *c_graph));
-}
-
-int check_constraints (value* circ, value* c_graph) {
-    CLOSURE("check_constraints");
-    return Bool_val(caml_callback2(*closure, *circ, *c_graph));
-}
-
-CircLayoutPair simple_map (value* circ, value* layout, value* c_graph) {
+value* decompose_swaps(value* circ, value* c_graph) {
     CAMLparam0();
     CAMLlocal1(res);
-    CLOSURE("simple_map");
-    res = caml_callback3(*closure, *circ, *layout, *c_graph);
-    CircLayoutPair retval;
-    retval.circ = wrap (Field (res, 0));
-    retval.layout = wrap (Field (res, 1));
-    CAMLreturnT(CircLayoutPair, retval);
-}
-
-value* make_tenerife () {
-    CAMLparam0();
-    CAMLlocal1(res);
-    CLOSURE("make_tenerife");
-    res = caml_callback(*closure, Val_unit);
-    CAMLreturnT(value*, wrap(res));
-}
-
-value* make_lnn (int nqbits) {
-    CAMLparam0();
-    CAMLlocal1(res);
-    CLOSURE("make_lnn");
-    res = caml_callback(*closure, Val_int(nqbits));
-    CAMLreturnT(value*, wrap(res));
-}
-
-value* make_lnn_ring (int nqbits) {
-    CAMLparam0();
-    CAMLlocal1(res);
-    CLOSURE("make_lnn_ring");
-    res = caml_callback(*closure, Val_int(nqbits));
-    CAMLreturnT(value*, wrap(res));
-}
-
-value* make_grid (int nrows, int ncols) {
-    CAMLparam0();
-    CAMLlocal1(res);
-    CLOSURE("make_grid");
-    res = caml_callback2(*closure, Val_int(nrows), Val_int(ncols));
+    CLOSURE("decompose_swaps");
+    res = caml_callback2(*closure, *circ, *c_graph);
+    destroy(circ);
     CAMLreturnT(value*, wrap(res));
 }
 
@@ -303,6 +271,21 @@ value* trivial_layout (int nqbits) {
     CLOSURE("trivial_layout");
     res = caml_callback(*closure, Val_int(nqbits));
     CAMLreturnT(value*, wrap(res));
+}
+
+int check_list(int nqbits, int* buff) {
+    CAMLparam0();
+    CAMLlocal2(cons, lst);
+    int i;
+    for (i = nqbits - 1; i >= 0; i--) // build the list "backwards"
+    {
+        cons = caml_alloc(2, 0);
+        Store_field(cons, 0, Val_int(buff[i]));  // head
+        Store_field(cons, 1, lst);               // tail
+        lst = cons;
+    }
+    CLOSURE("check_list");
+    CAMLreturnT(int, Bool_val(caml_callback(*closure, lst)));
 }
 
 // buff is allocated & initialized in the Python code with nqbits entries
@@ -322,20 +305,37 @@ value* list_to_layout (int nqbits, int* buff) {
     CAMLreturnT(value*, wrap(res));
 }
 
-// buff is allocated in the Python code with nqbits entries
-void layout_to_list (value* layout, int nqbits, int* buff) {
+value* c_graph_from_coupling_map(int nqbits, int len, IntIntPair* coupling_map) {
     CAMLparam0();
-    CAMLlocal2(res, head);
-    CLOSURE("layout_to_list");
-    res = caml_callback2(*closure, *layout, Val_int(nqbits));
-    int* retval = malloc(nqbits * sizeof(int));
+    CAMLlocal4(res, cons, lst, tup);
     int i;
-    for (i = 0; i < nqbits; i++) {
-        head = Field(res, 0); // head
-        res = Field(res, 1);  // tail
-        buff[i] = Int_val (head);
+    for (i = len - 1; i >= 0; i--)
+    {
+        cons = caml_alloc(2, 0);
+        tup = caml_alloc(2, 0);
+        Store_field(tup, 0, Val_int(coupling_map[i].x)); // fst elem of the tuple
+        Store_field(tup, 1, Val_int(coupling_map[i].y)); // snd elem of the tuple
+        Store_field(cons, 0, tup); // head
+        Store_field(cons, 1, lst); // tail
+        lst = cons;
     }
-    CAMLreturn0;
+    CLOSURE("c_graph_from_coupling_map");
+    res = caml_callback2(*closure, nqbits, lst);
+    CAMLreturnT(value*, wrap(res));
 }
 
+int check_swap_equivalence (value* circ1, value* circ2, value* layout1, value* layout2) {
+    CAMLparam0();
+    CAMLlocalN(args, 4);
+    CLOSURE("check_swap_equivalence");
+    args[0] = *circ1;
+    args[1] = *circ2;
+    args[2] = *layout1;
+    args[3] = *layout2;
+    CAMLreturnT(int, Bool_val(caml_callbackN(*closure, 4, args)));
+}
 
+int check_constraints (value* circ, value* c_graph) {
+    CLOSURE("check_constraints");
+    return Bool_val(caml_callback2(*closure, *circ, *c_graph));
+}

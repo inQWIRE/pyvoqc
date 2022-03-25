@@ -2,13 +2,20 @@ from ctypes import *
 import os.path
 import time
 
+class VOQCError(Exception):
+    def __init__(self, *message):
+        super().__init__(" ".join(message))
+        self.message = " ".join(message)
+    def __str__(self):
+        return repr(self.message)
+
 class CircIntPair(Structure):
     _fields_ = [('circ', c_void_p),
                 ('nqbits', c_int)] 
 
-class CircLayoutPair(Structure):
-    _fields_ = [('circ', c_void_p),
-                ('layout', c_void_p)] 
+class IntIntPair(Structure):
+    _fields_ = [('x', c_int),
+                ('y', c_int)] 
 
 def filter_counts(counts):
     cpy = dict()
@@ -17,19 +24,27 @@ def filter_counts(counts):
             cpy[key] = value
     return cpy
 
-class VOQC:
-    
-    # Constructor (takes a qasm file as input)
-    def __init__(self, fname):
-        
-        # set path and lib
-        rel = os.path.dirname(os.path.abspath(__file__)) # ..
-        self.lib = CDLL(os.path.join(rel,'lib/libvoqc.so'))
+# NOTE: This function should only be called once, so it can't be inside the
+# Circuit class initializer, which may be called multiple times. I'm not sure 
+# what the best solution is. -KH
+def get_library_handle():
+    # set path and lib
+    rel = os.path.dirname(os.path.abspath(__file__)) # ..
+    lib = CDLL(os.path.join(rel,'lib/libvoqc.so'))
 
-        # initialize OCaml code
-        self.lib.init.argtypes = None
-        self.lib.init.restype= None
-        self.lib.init()
+    # initialize OCaml code
+    lib.init.argtypes = None
+    lib.init.restype= None
+    lib.init()
+
+    return lib
+
+class VOQCCircuit:
+    
+    # Constructor takes a library handle & qasm file as input
+    def __init__(self, handle, fname):
+
+        self.lib = handle
 
         # call read_qasm function and return pointer to a circuit 
         self.lib.read_qasm.argtypes = [c_char_p]
@@ -38,7 +53,7 @@ class VOQC:
         self.circ = res.circ
         self.nqbits = res.nqbits
         
-        # set layout and connectivity graph to Nil
+        # start with an empty layout and connectivity graph
         self.layout = None
         self.c_graph = None
         
@@ -126,15 +141,15 @@ class VOQC:
                  "CCZ" : self.lib.count_CCZ(self.circ) }
         return filter_counts(cnts)
 
-    def count_clifford_rzq(self):
-        self.lib.count_clifford_rzq.argtypes = [c_void_p]
-        self.lib.count_clifford_rzq.restype = c_int
-        return self.lib.count_clifford_rzq(self.circ)
+    def count_rzq_clifford(self):
+        self.lib.count_rzq_clifford.argtypes = [c_void_p]
+        self.lib.count_rzq_clifford.restype = c_int
+        return self.lib.count_rzq_clifford(self.circ)
 
     def total_gate_count(self):
-        self.lib.total_gate_count.argtypes = [c_void_p]
-        self.lib.total_gate_count.restype = c_int
-        return self.lib.total_gate_count(self.circ)
+        self.lib.count_total.argtypes = [c_void_p]
+        self.lib.count_total.restype = c_int
+        return self.lib.count_total(self.circ)
 
     def print_info(self):
         print("Circuit uses %d qubits and %d gates." % (self.nqbits,self.total_gate_count()))
@@ -174,18 +189,6 @@ class VOQC:
         self.lib.replace_rzq.argtypes = [c_void_p]
         self.lib.replace_rzq.restype = c_void_p
         self.circ = self.lib.replace_rzq(self.circ)
-        return self
-
-    def optimize_1q_gates(self):        
-        self.lib.optimize_1q_gates.argtypes = [c_void_p]
-        self.lib.optimize_1q_gates.restype = c_void_p
-        self.circ = self.lib.optimize_1q_gates(self.circ)
-        return self
-
-    def cx_cancellation(self):        
-        self.lib.cx_cancellation.argtypes = [c_void_p]
-        self.lib.cx_cancellation.restype = c_void_p
-        self.circ = self.lib.cx_cancellation(self.circ)
         return self
 
     def optimize_ibm(self):        
@@ -230,136 +233,74 @@ class VOQC:
         self.circ = self.lib.optimize_nam(self.circ)
         return self
 
-    def check_layout(self):
-        if not self.layout:
-            print("Layout is not set. Call 'trivial_layout' or 'layout_from_list'.")
-        else:
-            self.lib.check_layout.argtypes = [c_void_p, c_int]
-            self.lib.check_layout.restype = c_int
-            return (self.lib.check_layout(self.layout, self.nqbits) == 1)
-            
-    def check_graph(self):
-        if not self.c_graph:
-            print("Connectivity graph is not set.")
-        else:
-            self.lib.check_graph.argtypes = [c_void_p]
-            self.lib.check_graph.restype = c_int
-            return (self.lib.check_graph(self.c_graph) == 1)
+    def optimize(self):        
+        self.lib.optimize.argtypes = [c_void_p]
+        self.lib.optimize.restype = c_void_p
+        self.circ = self.lib.optimize(self.circ)
+        return self
     
-    def check_constraints(self):
-        if not self.c_graph:
-            print("Connectivity graph is not set.")
+    def decompose_swaps(self):
+        if not self.c_graph: 
+            raise VOQCError("Cannot apply decompose_swaps. Connectivity graph is not set.")
         else:
-            self.lib.check_constraints.argtypes = [c_void_p, c_void_p]
-            self.lib.check_constraints.restype = c_int
-            return (self.lib.check_constraints(self.circ, self.c_graph) == 1)
+            self.lib.decompose_swaps.argtypes = [c_void_p, c_void_p]
+            self.lib.decompose_swaps.restype = c_void_p
+            self.circ = self.lib.decompose_swaps(self.circ, self.c_graph)    
+            return self
 
-    def make_tenerife(self):
-        self.lib.destroy.argtypes = [c_void_p]
-        self.lib.destroy.restype = None
-        
-        if self.c_graph: # delete old c_graph
-            self.lib.destroy(self.c_graph)
-
-        self.lib.make_tenerife.argtypes = None
-        self.lib.make_tenerife.restype = c_void_p
-        self.c_graph = self.lib.make_tenerife()
-        
-        # set the number of qubits to 5 and invalidate the previous layout
-        self.nqbits = 5
-        if self.layout:
-            print("Deleting old layout. You will need to provide a new layout.")
-            self.lib.destroy(self.layout)
-            self.layout = None
-    
-    def make_lnn(self, nqbits):        
-        self.lib.destroy.argtypes = [c_void_p]
-        self.lib.destroy.restype = None
-        if self.c_graph:
-            self.lib.destroy(self.c_graph)
-        self.lib.make_lnn.argtypes = [c_int]
-        self.lib.make_lnn.restype = c_void_p
-        self.c_graph = self.lib.make_lnn(nqbits)
-        self.nqbits = nqbits
-        if self.layout:
-            print("Deleting old layout. You will need to provide a new layout.")
-            self.lib.destroy(self.layout)
-            self.layout = None
-
-    def make_lnn_ring(self, nqbits):        
-        self.lib.destroy.argtypes = [c_void_p]
-        self.lib.destroy.restype = None
-        if self.c_graph:
-            self.lib.destroy(self.c_graph)
-        self.lib.make_lnn_ring.argtypes = [c_int]
-        self.lib.make_lnn_ring.restype = c_void_p
-        self.c_graph = self.lib.make_lnn_ring(nqbits)
-        self.nqbits = nqbits
-        if self.layout:
-            print("Deleting old layout. You will need to provide a new layout.")
-            self.lib.destroy(self.layout)
-            self.layout = None
-
-    def make_grid(self, nrows, ncols):        
-        self.lib.destroy.argtypes = [c_void_p]
-        self.lib.destroy.restype = None
-        if self.c_graph:
-            self.lib.destroy(self.c_graph)
-        self.lib.make_grid.argtypes = [c_int, c_int]
-        self.lib.make_grid.restype = c_void_p
-        self.c_graph = self.lib.make_grid(nrows, ncols)
-        self.nqbits = nrows * ncols
-        if self.layout:
-            print("Deleting old layout. You will need to provide a new layout.")
-            self.lib.destroy(self.layout)
-            self.layout = None
-
-    def trivial_layout(self, nqbits):
-        if not self.c_graph:
-            print("Please set the connectivity graph before the layout.")    
-        elif self.nqbits != nqbits:
-            print("The layout must contain %d qubits." % self.nqbits) 
+    def trivial_layout(self, nqbits): 
+        if self.nqbits > nqbits:
+            raise VOQCError("The layout is too small. It must contain at least %d qubits." % self.nqbits)
         else:
             self.lib.trivial_layout.argtypes = [c_int]
             self.lib.trivial_layout.restype = c_void_p 
             self.layout = self.lib.trivial_layout(nqbits)
             self.nqbits = nqbits
-    
-    def layout_to_list(self):
-        if not self.layout:
-            print("Layout is not set. Call 'trivial_layout' or 'layout_from_list'.")
-        else:
-            arr = (c_int * self.nqbits)()
-            self.lib.layout_to_list.argtypes = [c_void_p, c_int, POINTER(c_int)]
-            self.lib.layout_to_list.restype = None
-            self.lib.layout_to_list(self.layout, self.nqbits, arr)
-            l = []
-            for elmt in arr:
-                l.append(elmt)
-            return l
             
     def list_to_layout(self, l):
-        if not self.c_graph:
-            print("Please set the connectivity graph before the layout.")    
-        elif self.nqbits != len(l):
-            print("The layout must contain %d qubits." % self.nqbits) 
+        if self.nqbits > len(l):
+            raise VOQCError("The layout is too small. The layout must contain at least %d qubits." % self.nqbits)
         else:
             arr = (c_int * len(l))(*l)
-            self.lib.list_to_layout.argtypes = [c_int, POINTER(c_int)]
-            self.lib.list_to_layout.restype = c_void_p 
-            self.layout = self.lib.list_to_layout(len(l), arr)
-            self.nqbits = len(l)
-            if not self.check_layout():
-                print("Warning: the generated layout is not well-formed (make sure list elements are unique).")
-    
-    def simple_map(self):
-        if (not self.layout) or (not self.c_graph): 
-            print("Layout or connectivity graph is not set.")
+            self.lib.check_list.argtypes = [c_int, POINTER(c_int)]
+            self.lib.check_list.restype = c_int
+            if self.lib.check_list(len(l), arr) == 1:
+                self.lib.list_to_layout.argtypes = [c_int, POINTER(c_int)]
+                self.lib.list_to_layout.restype = c_void_p 
+                self.layout = self.lib.list_to_layout(len(l), arr)
+                self.nqbits = len(l)
+            else:
+                raise VOQCError("list_to_layout input list is invalid: %s." % l)
+
+    def c_graph_from_coupling_map(self, nqbits, coupling_map):
+        if self.nqbits > nqbits:
+            raise VOQCError("The coupling map is too small. The connectivity graph must contain at least %d qubits." % self.nqbits)
+        self.lib.destroy.argtypes = [c_void_p]
+        self.lib.destroy.restype = None
+        if self.c_graph:
+            print("Warning: Deleting old connectivity graph.")
+            self.lib.destroy(self.c_graph)
+        arr = (IntIntPair * len(coupling_map))()
+        for i in range(len(coupling_map)):
+            arr[i].x = coupling_map[i][0]
+            arr[i].y = coupling_map[i][1]
+        self.lib.c_graph_from_coupling_map.argtypes = [c_int, c_int, POINTER(IntIntPair)]
+        self.lib.c_graph_from_coupling_map.restype = c_void_p 
+        self.c_graph = self.lib.c_graph_from_coupling_map(nqbits, len(coupling_map), arr)
+        self.nqbits = nqbits
+
+    def check_swap_equivalence(self, obj):
+        if not self.layout or not obj.layout: 
+            raise VOQCError("Cannot apply check_swap_equivalence. Input layouts are not set.")
+        self.lib.check_swap_equivalence.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p]
+        self.lib.check_swap_equivalence.restype = c_int
+        return (self.lib.check_swap_equivalence(self.circ, obj.circ, self.layout, obj.layout) == 1)
+
+    def check_constraints(self):
+        if not self.c_graph:
+            raise VOQCError("Cannot apply check_constraints. Connectivity graph is not set.")
         else:
-            self.lib.simple_map.argtypes = [c_void_p, c_void_p, c_void_p]
-            self.lib.simple_map.restype = CircLayoutPair
-            res = self.lib.simple_map(self.circ, self.layout, self.c_graph)    
-            self.circ = res.circ 
-            self.layout = res.layout
-            return self  
-    
+            self.lib.check_constraints.argtypes = [c_void_p, c_void_p]
+            self.lib.check_constraints.restype = c_int
+            return (self.lib.check_constraints(self.circ, self.c_graph) == 1)
+

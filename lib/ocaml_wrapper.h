@@ -9,12 +9,11 @@ typedef struct circ_int_pair
   int nqbits;
 } CircIntPair ;
 
-typedef struct circ_layout_pair
+typedef struct int_int_pair
 {
-  value* circ;
-  value* layout;
-} CircLayoutPair ;
-
+  int x;
+  int y;
+} IntIntPair ;
 
 // I/O 
 CircIntPair read_qasm(char* fname);
@@ -42,8 +41,8 @@ int count_CZ(value* circ);
 int count_SWAP(value* circ);
 int count_CCX(value* circ);
 int count_CCZ(value* circ);
-int count_clifford_rzq(value* circ);
-int total_gate_count(value* circ);
+int count_total(value* circ);
+int count_rzq_clifford(value* circ);
 int check_well_typed(value* circ, int nqbits);
 value* convert_to_rzq(value* circ);
 value* convert_to_ibm(value* circ);
@@ -51,8 +50,6 @@ value* decompose_to_cnot(value* circ);
 value* replace_rzq(value* circ);
 
 // Optimization
-value* optimize_1q_gates(value* circ);
-value* cx_cancellation(value* circ);
 value* optimize_ibm(value* circ);
 value* not_propagation(value* circ);
 value* hadamard_reduction(value* circ);
@@ -60,16 +57,13 @@ value* cancel_single_qubit_gates(value* circ);
 value* cancel_two_qubit_gates(value* circ);
 value* merge_rotations(value* circ);
 value* optimize_nam(value* circ);
+value* optimize(value* circ);
 
 // Mapping
-int check_layout(value* layout, int nqbits);
-int check_graph(value* c_graph);
-int check_constraints(value* circ, value* c_graph);
-CircLayoutPair simple_map(value* circ, value* layout, value* c_graph);
-value* make_tenerife();
-value* make_lnn(int nqbits);
-value* make_lnn_ring(int nqbits);
-value* make_grid(int nrows, int ncols);
+value* decompose_swaps(value* circ, value* c_graph);
 value* trivial_layout(int nqbits);
+int check_list(int nqbits, int* buff);
 value* list_to_layout(int nqbits, int* buff);
-void layout_to_list(value* layout, int nqbits, int* buff);
+value* c_graph_from_coupling_map(int nqbits, int len, IntIntPair* coupling_map);
+int check_swap_equivalence(value* circ1, value* circ2, value* layout1, value* layout2);
+int check_constraints(value* circ, value* c_graph);

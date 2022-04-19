@@ -239,13 +239,14 @@ class VOQCMap(TransformationPass):
                 out.append(base + anc[0].index(bits[i]))
         return out
 
-def voqc_pass_manager(opts=None, layout_method=None, routing_method=None, backend_properties=None, coupling_map=None, seed_transpiler=None) -> PassManager:
+def voqc_pass_manager(pre_opts=None, post_opts=None, layout_method=None, routing_method=None, backend_properties=None, coupling_map=None, seed_transpiler=None) -> PassManager:
     """
     VOQC pass manager. Performs Qiskit layout/routing and VOQC translation validation 
     followed by the specified VOQC optimizations.
     
         Parameters:
-            opts: sequence of VOQC optimizations to apply (default is [optimize_nam, optimize_ibm])
+            pre_opts: sequence of VOQC optimizations to apply before mapping (default is [])
+            post_opts: sequence of VOQC optimizations to apply after mapping (default is [optimize])
             layout_method: Qiskit method to use for layout (default is sabre, VF2Layout is always tried first)
             routing_method: Qiskit method to use for routing (default is sabre)
             backend_properties: backend properties, used for layout/routing
@@ -261,16 +262,19 @@ def voqc_pass_manager(opts=None, layout_method=None, routing_method=None, backen
             If the coupling_map is None, only optimizations will be applied.
             If the optimization list is empty, only mapping will be applied.
     """
-    opts = opts or ["optimize"]
+    pre_opts = pre_opts or []
+    post_opts = post_opts or ["optimize"]
     layout_method = layout_method or "sabre"
     routing_method = routing_method or "sabre"
 
     pm = PassManager()
 
+    pm.append(VOQCOptimize(pre_opts))
+
     if coupling_map:
         pm.append(VOQCDecompose3q())
         pm.append(VOQCMap(layout_method, routing_method, backend_properties, coupling_map, seed_transpiler))
 
-    pm.append(VOQCOptimize(opts))
+    pm.append(VOQCOptimize(post_opts))
 
     return pm

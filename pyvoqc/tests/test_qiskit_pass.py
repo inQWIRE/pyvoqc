@@ -94,7 +94,7 @@ class TestQiskitPass(unittest.TestCase):
         self.run_mapping(c, "sabre", "sabre")
 
     def run_optimization(self, circ, opts=None):
-        vpm = voqc_pass_manager(opts=opts)
+        vpm = voqc_pass_manager(post_opts=opts)
         new_circ = vpm.run(circ)
         return new_circ
 
@@ -102,7 +102,7 @@ class TestQiskitPass(unittest.TestCase):
         backend = FakeAlmaden()
         c_map = CouplingMap(couplinglist=backend.configuration().coupling_map)
         props = backend.properties()
-        vpm = voqc_pass_manager(opts=[], layout_method=layout, routing_method=routing, backend_properties=props, coupling_map=c_map)
+        vpm = voqc_pass_manager(post_opts=[], layout_method=layout, routing_method=routing, backend_properties=props, coupling_map=c_map)
         new_circ = vpm.run(circ)
         return new_circ
 

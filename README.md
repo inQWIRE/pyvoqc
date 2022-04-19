@@ -21,7 +21,7 @@ To run VOQC, we (1) extract the verified Coq code to OCaml, (2) compile the extr
 
 pyvoqc requires Python 3 and a compatible version of pip. We recommend using [Anaconda](https://www.anaconda.com/products/individual) to make sure you get the right versions (e.g., see the instructions for setting up a Qiskit environment [here](https://qiskit.org/documentation/getting_started.html))
 
-Although pyvoqc is a Python package, it requires OCaml to build the underlying library code. At some point in the future we will remove this dependency by pre-compiling binaries, but for now you will need to install [opam](https://opam.ocaml.org/doc/Install.html). Once you have opam installed, follow the instructions below to set up your environment.
+Although pyvoqc is a Python package, it requires OCaml to build the underlying library code. At some point in the future we hope to remove this dependency by pre-compiling binaries, but for now you will need to install [opam](https://opam.ocaml.org/doc/Install.html). Once you have opam installed, follow the instructions below to set up your environment.
 ```
 # environment setup
 opam init
@@ -30,7 +30,6 @@ eval $(opam env)
 # install the OCaml version of VOQC
 opam pin voqc https://github.com/inQWIRE/mlvoqc.git#mapping
 ```
-*Note*: If you have previously installed `voqc` with opam, run `opam uninstall voqc` first to ensure that you get the right version.
 
 ## Installation
 
@@ -72,9 +71,9 @@ VOQC currently supports the OpenQASM 2.0 file format, excluding measurement, and
 * ccx
 * ccz
 
-Above, "f" is a float expression (possibly including the constant pi) and "i" is an integer expression.
+Above, "f" is a float expression (possibly including the constant pi).
 
-We recommend using our Qiskit pass manager to perform VOQC verified optimization and validated mapping (as in the tutorial). 
+We recommend using our Qiskit pass manager to perform VOQC verified optimization and validated mapping (as shown in the tutorial). 
 However, it is also possibly to call `pyvoqc` functions directly. 
 Here are the functions exposed by our interface:
 * `get_library_handle`
